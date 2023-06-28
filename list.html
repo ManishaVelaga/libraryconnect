@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <title>Book Search</title>
+  <style>   
+    body {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .book-item {
+      width: 300px;
+      background-color: #f2f2f2;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px;
+    }
+
+    .book-item h2 {
+      margin-top: 0;
+    }
+
+    .book-item p {
+      margin-bottom: 5px;
+    }
+
+    #cart {
+      margin-top: 20px;
+    }
+
+    #cart-items {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+    }
+
+    .cart-item .title {
+      flex-grow: 1;
+    }
+
+    .cart-item .count {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Book Search</h1>
+
+  <form id="search-form">
+    <input type="text" id="search-input" placeholder="Enter search terms">
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="book-list"></div>
+
+  <div id="cart">
+    <h2>Cart</h2>
+    <ul id="cart-items"></ul>
+    <button id="checkout-button">Checkout</button>
+  </div>
+
+  <script>
+  const searchForm = document.getElementById('search-form');
+  const searchInput = document.getElementById('search-input');
+  const bookList = document.getElementById('book-list');
+  const cartItems = document.getElementById('cart-items');
+  const checkoutButton = document.getElementById('checkout-button');
+  const cart = {};
+
+  searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const searchTerms = searchInput.value;
+    fetchBooks(searchTerms);
+  });
+
+  async function fetchBooks(searchTerms) {
+    try {
+      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchTerms)}`);
+      const data = await response.json();
+      const books = data.items; // Array of book objects
+
+      // Render the fetched books
+      renderBooks(books);
+    } catch (error) {
+      console.log('Error fetching books:', error);
+    }
+  }
+
+  function renderBooks(books) {
+    bookList.innerHTML = ''; // Clear existing book list
+
+    books.forEach((book) => {
+      const volumeInfo = book.volumeInfo;
+      const title = volumeInfo.title;
+      const authors = volumeInfo.authors ? volumeInfo.authors.join(', ') : 'Unknown';
+      const genre = volumeInfo.categories ? volumeInfo.categories[0] : 'Unknown';
+      const publishedYear = volumeInfo.publishedDate ? volumeInfo.publishedDate.substring(0, 4) : 'Unknown';
+
+      // Create a new DOM element for each book and append it to the book list
+      const bookItem = document.createElement('div');
+      bookItem.classList.add('book-item');
+
+      // Book title
+      const bookTitle = document.createElement('h2');
+      bookTitle.textContent = title;
+      bookItem.appendChild(bookTitle);
+
+      // Book authors
+      const bookAuthors = document.createElement('p');
+      bookAuthors.textContent = 'Authors: ' + authors;
+      bookItem.appendChild(bookAuthors);
+
+      // Book genre
+      const bookGenre = document.createElement('p');
+      bookGenre.textContent = 'Genre: ' + genre;
+      bookItem.appendChild(bookGenre);
+
+      // Book publishing year
+      const bookYear = document.createElement('p');
+      bookYear.textContent = 'Publishing Year: ' + publishedYear;
+      bookItem.appendChild(bookYear);
+
+      // Add to Cart button
+      const addToCartButton = document.createElement('button');
+      addToCartButton.textContent = 'Add to Cart';
+      addToCartButton.addEventListener('click', () => {
+        addToCart(book);
+      });
+      bookItem.appendChild(addToCartButton);
+
+      bookList.appendChild(bookItem);
+    });
+  }
+
+  function addToCart(book) {
+    const volumeInfo = book.volumeInfo;
+    const title = volumeInfo.title;
+
+    // Check if the book is already in the cart
+    if (cart[title]) {
+      if (cart[title].count >= cart[title].available) {
+        alert('Sorry, all copies of this book are currently rented.');
+        return;
+      }
+      cart[title].count++; // Increment the count if already in the cart
+    } else {
+      cart[title] = {
+        count: 1,
+        available: 1,
+        book: book
+      };
+    }
+
+    updateCart();
+  }
+
+  function updateCart() {
+    cartItems.innerHTML = ''; // Clear existing cart items
+
+    let totalCount = 0;
+
+    // Add cart items to the cart
+    for (const title in cart) {
+      const cartItem = document.createElement('li');
+      cartItem.classList.add('cart-item');
+
+      const itemTitle = document.createElement('div');
+      itemTitle.classList.add('title');
+      itemTitle.textContent = title;
+
+      const itemCount = document.createElement('span');
+      itemCount.classList.add('count');
+      itemCount.textContent = `(${cart[title].count} copies)`;
+
+      cartItem.appendChild(itemTitle);
+      cartItem.appendChild(itemCount);
+
+      cartItems.appendChild(cartItem);
+
+      totalCount += cart[title].count;
+    }
+
+    // Update the count of books in the cart
+    checkoutButton.textContent = `Checkout (${totalCount} books)`;
+  }
+
+  checkoutButton.addEventListener('click', () => {
+    checkout();
+  });
+
+  function checkout() {
+    // Store the rented books in localStorage
+    const rentedBooks = [];
+    for (const title in cart) {
+      for (let i = 0; i < cart[title].count; i++) {
+        const book = cart[title].book;
+        rentedBooks.push(book);
+      }
+    }
+    localStorage.setItem('rentedBooks', JSON.stringify(rentedBooks));
+
+    // Redirect to the checkout page
+    window.location.href = 'checkout.html';
+  }
+
+  // Retrieve cart data from localStorage if available
+  const storedCart = JSON.parse(localStorage.getItem('cart'));
+  if (storedCart) {
+    cart = storedCart;
+    updateCart();
+  }
+</script>
+
+</body>
+</html>
+

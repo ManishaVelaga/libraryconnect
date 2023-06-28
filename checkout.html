@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout</title>
+  <style>
+    body {
+      padding: 20px;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .book-item {
+      width: 300px;
+      background-color: #f2f2f2;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    .book-item h2 {
+      margin-top: 0;
+    }
+
+    .book-item p {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rented Books</h1>
+
+  <div id="rented-books"></div>
+
+  <script>
+    const rentedBooksContainer = document.getElementById('rented-books');
+    let rentedBooks = JSON.parse(localStorage.getItem('rentedBooks')) || [];
+
+    rentedBooks.forEach((book) => {
+      const volumeInfo = book.volumeInfo;
+      const title = volumeInfo.title;
+      const authors = volumeInfo.authors ? volumeInfo.authors.join(', ') : 'Unknown';
+      const genre = volumeInfo.categories ? volumeInfo.categories[0] : 'Unknown';
+      const publishedYear = volumeInfo.publishedDate ? volumeInfo.publishedDate.substring(0, 4) : 'Unknown';
+
+      const bookItem = document.createElement('div');
+      bookItem.classList.add('book-item');
+
+      const bookTitle = document.createElement('h2');
+      bookTitle.textContent = title;
+      bookItem.appendChild(bookTitle);
+
+      const bookAuthors = document.createElement('p');
+      bookAuthors.textContent = 'Authors: ' + authors;
+      bookItem.appendChild(bookAuthors);
+
+      const bookGenre = document.createElement('p');
+      bookGenre.textContent = 'Genre: ' + genre;
+      bookItem.appendChild(bookGenre);
+
+      const bookYear = document.createElement('p');
+      bookYear.textContent = 'Publishing Year: ' + publishedYear;
+      bookItem.appendChild(bookYear);
+
+      rentedBooksContainer.appendChild(bookItem);
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rented Books</title>
+  <style>
+    body{
+      background-image:url("books.jpg");
+      background-size:1700px 800px;
+      background-repeat:no-repeat;
+    }
+    .book-item {
+      width: 300px;
+      background-color: #f2f2f2;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px;
+    }
+    .book-item h2 {
+      margin-top: 0;
+    }
+    .book-item p {
+      margin-bottom: 5px;
+    }
+
+  .container {
+  display: flex;
+  gap: 0.625%;
+  position: absolute;
+  top:60px;
+  right:100px;
+  
+}
+    a {
+  flex: 1;
+  text-decoration: none;
+  outline: none;
+  text-align: center;
+  line-height: 3;
+  color: black;
+}
+
+a:link,
+a:visited,
+a:focus {
+  background: #F08080;
+  color:black;
+  padding-top:2px;
+  padding-bottom:2px;
+  padding-left:10px;
+  padding-right:10px;
+  border-radius: 6px;
+}
+
+a:hover {
+  background: orange;
+}
+
+a:active {
+  background: yellow;
+  color: white;
+}
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+  <div class="nav-bar">
+    <h1 id="heading1">Rented Books</h1>
+    <div class="container">
+      <a href="book.html">Search</a>
+    </div>
+  </div>
+</div>
+
+  <div id="book-list"></div>
+
+  <script>
+    const bookList = document.getElementById('book-list');
+    let rentedBooks = [];
+
+    // Retrieve rented books from localStorage if available
+    rentedBooks = JSON.parse(localStorage.getItem('rentedBooks')) || [];
+
+    renderBooks();
+
+    function renderBooks() {
+      bookList.innerHTML = ''; // Clear existing book list
+
+      if (rentedBooks.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'No books rented.';
+        bookList.appendChild(emptyMessage);
+      } else {
+        rentedBooks.forEach((book) => {
+          const volumeInfo = book.volumeInfo;
+          const title = volumeInfo.title;
+          const authors = volumeInfo.authors ? volumeInfo.authors.join(', ') : 'Unknown';
+          const genre = volumeInfo.categories ? volumeInfo.categories[0] : 'Unknown';
+          const publishedYear = volumeInfo.publishedDate ? volumeInfo.publishedDate.substring(0, 4) : 'Unknown';
+
+          // Create a new DOM element for each rented book and append it to the book list
+          const bookItem = document.createElement('div');
+          bookItem.classList.add('book-item');
+
+          // Book title
+          const bookTitle = document.createElement('h2');
+          bookTitle.textContent = title;
+          bookItem.appendChild(bookTitle);
+
+          // Book authors
+          const bookAuthors = document.createElement('p');
+          bookAuthors.textContent = 'Authors: ' + authors;
+          bookItem.appendChild(bookAuthors);
+
+          // Book genre
+          const bookGenre = document.createElement('p');
+          bookGenre.textContent = 'Genre: ' + genre;
+          bookItem.appendChild(bookGenre);
+
+          // Book publishing year
+          const bookYear = document.createElement('p');
+          bookYear.textContent = 'Publishing Year: ' + publishedYear;
+          bookItem.appendChild(bookYear);
+
+          bookList.appendChild(bookItem);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
